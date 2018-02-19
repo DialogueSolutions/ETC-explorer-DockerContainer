@@ -1,14 +1,16 @@
 #!/bin/sh
 
-#add mongoDB pbk
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5 &&
-
-#add mongoDB repo
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list &&
+#Update everything before isntalling any extra repositories or packages
 apt-get update -y &&
 apt-get upgrade -y &&
 apt-get install -y build-essential &&
-apt-get install -y git wget curl nano redis-server nginx software-properties-common python-software-properties rustc cargo mongodb-org &&
+apt-get install -y git wget curl nano redis-server nginx software-properties-common python-software-properties rustc cargo apt-transport-https &&
+
+#Add mongoDB pbk
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5 &&
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.6.list &&
+apt-get update -y &&
+apt-get install -y mongodb-org &&
 
 #Install latest nodejs
 curl -sL https://deb.nodesource.com/setup_9.x | bash - &&
