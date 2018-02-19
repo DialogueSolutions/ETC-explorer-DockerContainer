@@ -1,0 +1,61 @@
+#!/bin/sh
+
+#add mongoDB pbk
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5 &&
+
+#add mongoDB repo
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list &&
+apt-get update -y &&
+apt-get upgrade -y &&
+apt-get install -y build-essential &&
+apt-get install -y git wget curl nano redis-server nginx software-properties-common python-software-properties rustc cargo mongodb-org &&
+
+#Install latest nodejs
+curl -sL https://deb.nodesource.com/setup_9.x | bash - &&
+apt-get install -y nodejs &&
+
+#Install latest golang on Ubuntu
+add-apt-repository -y ppa:longsleep/golang-backports &&
+apt-get update -y &&
+apt-get install -y golang-go &&
+export GOPATH=$HOME/go &&
+
+#Download GETH Source
+cd $HOME/ &&
+go get -v github.com/ethereumproject/go-ethereum/... &&
+
+#Download sputnikvm build files
+cd $HOME/go/src/github.com/ethereumproject/ &&
+git clone https://github.com/ethereumproject/sputnikvm-ffi &&
+cd sputnikvm-ffi/c/ffi &&
+
+#Build sputnikvm
+cargo build --release &&
+cp $HOME/go/src/github.com/ethereumproject/sputnikvm-ffi/c/ffi/target/release/libsputnikvm_ffi.a $HOME/go/src/github.com/ethereumproject/sputnikvm-ffi/c/libsputnikvm.a &&
+
+#Build geth with sputnikvm
+cd $HOME/go/src/github.com/ethereumproject/go-ethereum/cmd/geth &&
+CGO_LDFLAGS="$HOME/go/src/github.com/ethereumproject/sputnikvm-ffi/c/libsputnikvm.a -ldl" go build -tags=sputnikvm . &&
+
+#Copy geth runtime to bin folder
+cp geth /usr/local/bin/ &&
+
+##Download latest version of explorer
+#cd /.ethereum-classic &&
+#git clone https://github.com/ethereumproject/explorer
+
+#Download and build PM2 and etc-net-intelligence
+cd $HOME &&
+git clone https://github.com/Machete3000/etc-net-intelligence-api etc-net-intelligence-api &&
+cd etc-net-intelligence-api &&
+git pull &&
+npm install &&
+npm install pm2 -g &&
+
+#create symbolic link from mounted folder to mongoDB this is done so you don't loose mongoDB if you have to re do the container.
+ln -s /var/lib/mongodb /.ethereum-classic/
+ln -s /.ethereum-classic/ $HOME/
+
+#Clean up
+rm -rf $HOME/go &&
+apt-get clean
