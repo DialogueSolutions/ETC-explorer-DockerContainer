@@ -31,7 +31,7 @@ npm install &&
 npm install pm2 -g &&
 
 #create symbolic link from mounted folder to mongoDB this is done so you don't loose mongoDB if you have to re do the container.
-ln -s /var/lib/mongodb /.ethereum-classic/explorer
+ln -s /.ethereum-classic/explorer/mongodb /var/lib/mongodb
 ln -s /.ethereum-classic/explorer $HOME/
 
 #Clean up
